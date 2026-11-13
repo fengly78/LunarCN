@@ -4,6 +4,17 @@
 
 功能设计参考 [Lunar](https://github.com/alin23/Lunar)，DDC 后端基于 MIT 许可的 [m1ddc](https://github.com/waydabber/m1ddc)。本项目不是 Lunar 官方发行版，不包含 Lunar Pro 加密源码，当前也未实现原版的全部功能。
 
+## 界面预览
+
+以下为 0.6.0 在 Apple Silicon Mac 与 Dell 显示器上的真实截图。图中内建屏已关闭，自动亮度跟随处于暂停状态。
+
+<p>
+  <img src="docs/images/main-window-0.6.0.jpg" alt="月光 0.6.0 主界面：内建屏恢复入口、外接屏控制及自动亮度状态" width="400" />
+  <img src="docs/images/display-settings-0.6.0.jpg" alt="月光 0.6.0 每屏设置：亮度上下限与设备预设" width="400" />
+</p>
+
+左图为主界面，右图为“设置与预设”展开后的视图。显示器音量等控制项按设备返回能力显示，实际兼容性见下文。
+
 ## 已实现
 
 - 内建屏和支持 DDC/CI 的外接屏亮度拖动即调节，高频目标合并、串行写入和设备读回确认。

@@ -30,6 +30,7 @@ cp ../LICENSE ../README.md ../CONTRIBUTING.md ../.gitignore "$stage/source/"
 ditto ../LICENSES "$stage/source/LICENSES"
 mkdir "$stage/source/docs"
 cp ../docs/lunar-feature-parity.zh-CN.md "$stage/source/docs/"
+ditto ../docs/images "$stage/source/docs/images"
 ditto -c -k "$stage/source" "$release_dir/LunarCN-$version-source.zip"
 
 hdiutil attach -nobrowse -readonly -mountpoint "$mount_dir" "$release_dir/LunarCN-$version-arm64.dmg" >/dev/null
