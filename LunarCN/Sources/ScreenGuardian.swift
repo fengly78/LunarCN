@@ -44,8 +44,8 @@ enum ScreenGuardian {
             try BuiltinDisplayEngine.setEnabled(false, id: id)
             print("READY")
             let deadline = DispatchTime.now() + 15
-            while CGDisplayIsActive(id) == 0 {
-                if commands.shouldRestore(externalAvailable: !BuiltinDisplayEngine.visibleExternalIDs().isEmpty,
+            while CGDisplayIsOnline(id) == 0 {
+                if commands.shouldRestore(externalAvailable: !BuiltinDisplayEngine.onlineExternalIDs().isEmpty,
                                           expired: DispatchTime.now() >= deadline) { break }
                 Thread.sleep(forTimeInterval: 0.25)
             }

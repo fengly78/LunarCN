@@ -8,8 +8,8 @@
     <key>CFBundleIconFile</key><string>LunarCN</string>
     <key>CFBundleExecutable</key><string>LunarCN</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.6.0</string>
-    <key>CFBundleVersion</key><string>7</string>
+    <key>CFBundleShortVersionString</key><string>0.6.1</string>
+    <key>CFBundleVersion</key><string>8</string>
     <key>CFBundleDevelopmentRegion</key><string>zh-Hans</string>
     <key>CFBundleLocalizations</key><array><string>zh-Hans</string></array>
     <key>LSMinimumSystemVersion</key><string>13.0</string>

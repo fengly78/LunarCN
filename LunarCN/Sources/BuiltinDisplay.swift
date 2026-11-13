@@ -15,9 +15,9 @@ final class BuiltinDisplayController: ObservableObject {
     private var guardian: Process?
     private var input: FileHandle?
     private var output: FileHandle?
-    private var received = ""
+    private var received = Data()
     private var timer: Timer?
-    private var failure: String?
+    private var restoring = false
 
     init() { updateAvailability() }
 
@@ -25,11 +25,11 @@ final class BuiltinDisplayController: ObservableObject {
         do {
             let id = try BuiltinDisplayEngine.builtinID()
             available = true
-            let nowOff = CGDisplayIsActive(id) == 0
+            let nowOff = CGDisplayIsOnline(id) == 0
             if isOff && !nowOff {
                 awaitingConfirmation = false
                 timer?.invalidate()
-                message = failure ?? "内置屏幕已恢复。"
+                message = "内置屏幕已恢复。"
             }
             isOff = nowOff
             externalReady = !BuiltinDisplayEngine.visibleExternalIDs().isEmpty
@@ -67,8 +67,7 @@ final class BuiltinDisplayController: ObservableObject {
             process.standardError = FileHandle.nullDevice
             input = commands.fileHandleForWriting
             output = responses.fileHandleForReading
-            received = ""
-            failure = nil
+            received.removeAll(keepingCapacity: true)
             guardian = process
             busy = true
             message = "正在关闭内置屏幕…"
@@ -85,8 +84,7 @@ final class BuiltinDisplayController: ObservableObject {
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 8) { [weak self, weak process] in
                 guard let self, let process, self.guardian === process, self.busy, !self.awaitingConfirmation else { return }
-                self.message = "屏幕配置响应较慢，已请求恢复。"
-                self.send("restore")
+                self.restore()
             }
         } catch {
             busy = false
@@ -106,9 +104,12 @@ final class BuiltinDisplayController: ObservableObject {
     }
 
     func restore() {
+        guard !restoring else { return }
+        restoring = true
+        message = "正在恢复内置屏幕…"
         if guardian?.isRunning == true {
             busy = true
-            _ = send("restore")
+            if !send("restore") { restoring = false; busy = false }
             return
         }
         busy = true
@@ -120,6 +121,7 @@ final class BuiltinDisplayController: ObservableObject {
                 } catch { return error.localizedDescription }
             }.value
             self.busy = false
+            self.restoring = false
             self.message = error ?? "内置屏幕已恢复。"
             self.updateAvailability()
             self.didChange?()
@@ -150,18 +152,20 @@ final class BuiltinDisplayController: ObservableObject {
             if isOff {
                 restore()
             } else {
-                message = failure ?? "内置屏幕已恢复。"
+                message = "内置屏幕已恢复。"
                 didChange?()
             }
             return
         }
-        received += String(decoding: data, as: UTF8.self)
-        while let newline = received.firstIndex(of: "\n") {
-            let line = String(received[..<newline])
+        received.append(data)
+        while let newline = received.firstIndex(of: 0x0a) {
+            let line = String(decoding: received[..<newline], as: UTF8.self)
             received.removeSubrange(...newline)
             if line == "READY" {
-                busy = false
                 isOff = true
+                // A late READY must not replace an already requested recovery with confirmation.
+                if restoring { continue }
+                busy = false
                 awaitingConfirmation = true
                 remaining = 15
                 message = "请确认外接屏可见；不确认将自动恢复。"
@@ -174,20 +178,21 @@ final class BuiltinDisplayController: ObservableObject {
                 }
                 didChange?()
             } else if line == "RESTORED" {
+                restoring = false
                 timer?.invalidate()
                 awaitingConfirmation = false
                 busy = false
                 isOff = false
-                message = failure ?? "内置屏幕已恢复。"
+                message = "内置屏幕已恢复。"
                 didChange?()
             } else if line.hasPrefix("ERROR:") {
-                failure = String(line.dropFirst(6))
-                message = failure!
+                message = String(line.dropFirst(6))
             }
         }
     }
 
     private func clearGuardian() {
+        restoring = false
         timer?.invalidate()
         awaitingConfirmation = false
         output?.readabilityHandler = nil
@@ -196,6 +201,24 @@ final class BuiltinDisplayController: ObservableObject {
         input = nil
         output = nil
         guardian = nil
+    }
+
+    static func runRecoverySelfTests() {
+        // Exercise guardian messages without launching a process or changing a display.
+        let control = BuiltinDisplayController()
+        control.busy = true
+        control.restoring = true
+        control.message = "正在恢复内置屏幕…"
+        control.receive(Data("READY\n".utf8))
+        precondition(control.isOff && control.busy && !control.awaitingConfirmation)
+        precondition(control.message == "正在恢复内置屏幕…")
+        let error = "屏幕配置未生效（1014）。"
+        for byte in "ERROR:\(error)\n".utf8 { control.receive(Data([byte])) }
+        precondition(control.message == error)
+        control.receive(Data("RESTORED\n".utf8))
+        precondition(!control.isOff && !control.busy && !control.restoring)
+        precondition(control.message == "内置屏幕已恢复。")
+        control.clearGuardian()
     }
 }
 

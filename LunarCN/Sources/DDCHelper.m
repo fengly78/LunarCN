@@ -34,14 +34,26 @@ static bool validValue(UInt8 control, DDCValue value) {
     return value.maxValue > 0 && value.curValue <= value.maxValue;
 }
 
-static DDCValue readValue(DDCTransport transport, UInt8 control) {
+static double monotonicTime(void) { return NSProcessInfo.processInfo.systemUptime; }
+
+static DDCValue readValueWithRetry(DDCTransport transport, UInt8 control, double deadline,
+                                 DDCValue (*readOnce)(DDCTransport, UInt8), int (*wait)(useconds_t)) {
     DDCValue value = {-1, -1};
-    for (int attempt = 0; attempt < 3; attempt++) {
-        value = readValueOnce(transport, control);
+    for (int attempt = 0; attempt < 5; attempt++) {
+        if (monotonicTime() >= deadline) break;
+        value = readOnce(transport, control);
         if (validValue(control, value)) break;
-        if (attempt < 2) usleep(100000);
+        if (attempt < 4) {
+            useconds_t delay = 100000 << attempt;
+            if (monotonicTime() + delay / 1000000.0 >= deadline) break;
+            wait(delay);
+        }
     }
     return value;
+}
+
+static DDCValue readValue(DDCTransport transport, UInt8 control, double deadline) {
+    return readValueWithRetry(transport, control, deadline, readValueOnce, usleep);
 }
 
 static bool validWrite(UInt8 control, unsigned long requested, DDCValue value) {
@@ -49,7 +61,30 @@ static bool validWrite(UInt8 control, unsigned long requested, DDCValue value) {
     return requested <= (unsigned long)value.maxValue;
 }
 
+static int testReads, testFailures;
+static useconds_t testWaited;
+static DDCValue testRead(DDCTransport transport, UInt8 control) {
+    (void)transport;
+    assert(control == LUMINANCE);
+    return ++testReads <= testFailures ? (DDCValue){-1, -1} : (DDCValue){59, 100};
+}
+static int testWait(useconds_t delay) { testWaited += delay; return 0; }
+
 static int selfTest(void) {
+    DDCTransport fixture = {NULL, DDC_CHIP_ADDRESS_DEFAULT};
+    double deadline = monotonicTime() + 4;
+    testFailures = 4;
+    DDCValue recovered = readValueWithRetry(fixture, LUMINANCE, deadline, testRead, testWait);
+    assert(recovered.curValue == 59 && testReads == 5 && testWaited == 1500000);
+    testReads = 0; testWaited = 0; testFailures = 5;
+    assert(readValueWithRetry(fixture, LUMINANCE, deadline, testRead, testWait).curValue == -1);
+    assert(testReads == 5 && testWaited == 1500000);
+    testReads = 0; testWaited = 0; testFailures = 0;
+    assert(readValueWithRetry(fixture, LUMINANCE, deadline, testRead, testWait).curValue == 59);
+    assert(testReads == 1 && testWaited == 0);
+    testReads = 0;
+    assert(readValueWithRetry(fixture, LUMINANCE, 0, testRead, testWait).curValue == -1);
+    assert(testReads == 0 && testWaited == 0);
     unsigned long parsed;
     assert(number("65535", 65535, &parsed) && parsed == 65535);
     assert(!number("-1", 65535, &parsed));
@@ -74,6 +109,8 @@ static int selfTest(void) {
     assert(convertI2CtoDDC(reply).curValue == -1);
     memset(reply, 0, sizeof(reply));
     assert(convertI2CtoDDC(reply).curValue == -1);
+    reply[0] = 0x6e; reply[1] = (char)0x80; reply[2] = (char)0xbe;
+    assert(convertI2CtoDDC(reply).curValue == -1);
     DDCPacket packet = createDDCPacket(LUMINANCE);
     prepareDDCWrite(&packet, 168);
     assert(packet.data[0] == 0x84 && packet.data[4] == 168 && packet.data[5] == 0);
@@ -93,6 +130,8 @@ int main(int argc, const char **argv) {
             (control != LUMINANCE && control != CONTRAST && control != VOLUME && control != MUTE) ||
             (setting && !number(argv[5], UINT16_MAX, &requested))) return fail("数值超出范围。");
 
+        // Keep all queries and confirmation inside the Swift caller's five-second timeout.
+        double deadline = monotonicTime() + 4;
         DisplayInfos displays[MAX_DISPLAYS] = {};
         CGDisplayCount count = getOnlineDisplayInfos(displays);
         DDCTransport transport = {NULL, DDC_CHIP_ADDRESS_DEFAULT};
@@ -105,7 +144,7 @@ int main(int argc, const char **argv) {
             }
         }
         if (!transport.service) return fail("未找到可用的显示器控制通道，请检查连接线或扩展坞。");
-        DDCValue value = readValue(transport, (UInt8)control);
+        DDCValue value = readValue(transport, (UInt8)control, deadline);
         if (!validValue((UInt8)control, value)) return fail("显示器未返回有效数据，可能不支持此功能，请检查 DDC/CI 设置。");
         if (setting) {
             if (!validWrite((UInt8)control, requested, value)) return fail("设置值不在显示器允许的范围内。");
@@ -113,9 +152,11 @@ int main(int argc, const char **argv) {
             prepareDDCWrite(&packet, (UInt16)requested);
             if (performDDCWriteAtChipAddress(transport.service, transport.chipAddress, &packet))
                 return fail("写入失败，请检查显示器连接。");
+            value = (DDCValue){-1, -1};
             for (int attempt = 0; attempt < 3; attempt++) {
+                if (monotonicTime() + 0.1 >= deadline) break;
                 usleep(100000);
-                value = readValue(transport, (UInt8)control);
+                value = readValue(transport, (UInt8)control, deadline);
                 if (value.curValue == (int)requested) break;
             }
             if (value.curValue != (int)requested) {

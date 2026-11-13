@@ -1,7 +1,8 @@
 import Foundation
 
-func runSelfTests() {
+@MainActor func runSelfTests() {
     do {
+        BuiltinDisplayController.runRecoverySelfTests()
         precondition(!ScreenRecoveryPolicy.shouldRestore(parentConnected: true, externalAvailable: true, confirmed: false, expired: false))
         precondition(ScreenRecoveryPolicy.shouldRestore(parentConnected: true, externalAvailable: true, confirmed: false, expired: true))
         precondition(!ScreenRecoveryPolicy.shouldRestore(parentConnected: true, externalAvailable: true, confirmed: true, expired: true))

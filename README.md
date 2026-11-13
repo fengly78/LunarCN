@@ -1,6 +1,6 @@
 # 月光 · LunarCN
 
-面向 Apple Silicon Mac 的独立中文显示器控制应用，当前版本 **0.6.0**，支持 macOS 13 或更高版本。
+面向 Apple Silicon Mac 的独立中文显示器控制应用，当前版本 **0.6.1**，支持 macOS 13 或更高版本。
 
 功能设计参考 [Lunar](https://github.com/alin23/Lunar)，DDC 后端基于 MIT 许可的 [m1ddc](https://github.com/waydabber/m1ddc)。本项目不是 Lunar 官方发行版，不包含 Lunar Pro 加密源码，当前也未实现原版的全部功能。
 
@@ -28,11 +28,11 @@
 
 ## 下载安装（Apple Silicon）
 
-当前提供 **[0.6.0 试用版](https://github.com/fengly78/LunarCN/releases/tag/v0.6.0)**：
+当前提供 **[0.6.1 试用版](https://github.com/fengly78/LunarCN/releases/tag/v0.6.1)**：
 
-- [DMG 安装包（推荐）](https://github.com/fengly78/LunarCN/releases/download/v0.6.0/LunarCN-0.6.0-arm64.dmg)：打开后将 LunarCN.app 拖入 Applications。
-- [应用 ZIP](https://github.com/fengly78/LunarCN/releases/download/v0.6.0/LunarCN-0.6.0-arm64.zip)：解压后移入应用程序文件夹。
-- [SHA-256 校验文件](https://github.com/fengly78/LunarCN/releases/download/v0.6.0/SHA256SUMS)。
+- [DMG 安装包（推荐）](https://github.com/fengly78/LunarCN/releases/download/v0.6.1/LunarCN-0.6.1-arm64.dmg)：打开后将 LunarCN.app 拖入 Applications。
+- [应用 ZIP](https://github.com/fengly78/LunarCN/releases/download/v0.6.1/LunarCN-0.6.1-arm64.zip)：解压后移入应用程序文件夹。
+- [SHA-256 校验文件](https://github.com/fengly78/LunarCN/releases/download/v0.6.1/SHA256SUMS)。
 
 仅支持 Apple Silicon（ARM64），最低 macOS 13。安装包使用本机临时签名，未经 Developer ID 签名或 Apple 公证，其他电脑可能被系统阻止打开。
 
@@ -55,11 +55,13 @@ open build/lunar-cn/LunarCN.app
 bash LunarCN/release.sh
 ```
 
-产物位于 `build/lunar-cn/releases/0.6.0/`。安装包见上方下载入口，也可使用本地打包流程；所有当前安装包均未经 Developer ID 签名或 Apple 公证。
+产物位于 `build/lunar-cn/releases/0.6.1/`。安装包见上方下载入口，也可使用本地打包流程；所有当前安装包均未经 Developer ID 签名或 Apple 公证。
 
 ## 使用与兼容性
 
 开启显示器的 DDC/CI 后点击刷新。亮度拖动即生效；对比度、音量与静音点击“应用其他更改”。关闭内建屏需连接并开启实体外接屏，确认外接屏可见后在倒计时内点击“保持关闭”。
+
+使用手动亮度或“跟随内建屏”前，请关闭显示器菜单中的自身自动亮度；两种自动调光同时运行可能覆盖目标值。DELL U3225QE 本机对照测试确认了这一冲突。月光不会自动修改显示器的传感器设置，写入未确认时会暂停对应调节。
 
 紧急恢复内建屏：
 
@@ -70,6 +72,8 @@ build/lunar-cn/LunarCN.app/Contents/MacOS/LunarCN --restore-display
 已在当前 Apple Silicon Mac 与 DELL U3225QE 上验证基础亮度、自动跟随及内建屏关闭／恢复。真实拔线、睡眠唤醒、多台外接屏同时拖动、其他显示器及 Intel Mac 尚未验收。Dell 音量在已测连接上可读但写入未确认；设备能力和连接方式需要分别验证。
 
 显示器控制使用系统未公开承诺稳定的接口，macOS 更新可能需要适配。请参阅[详细中文说明](LunarCN/README.zh-CN.md)、[版本与验证记录](LunarCN/RELEASE-NOTES.zh-CN.md)及[贡献说明](CONTRIBUTING.md)。
+
+0.6.1 的恢复、休眠和 DDC 稳定性修复及已测边界见[本机验证记录](docs/stability-0.6.1.zh-CN.md)。
 
 ## 许可证与来源
 

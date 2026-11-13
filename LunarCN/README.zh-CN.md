@@ -2,7 +2,7 @@
 
 基于 Lunar 的公开设计和 MIT 许可的 [m1ddc](https://github.com/waydabber/m1ddc) 后端开发的独立 macOS 应用，不依赖 Lunar Pro 源码或旧版 Intel 框架。
 
-## 当前功能（0.6.0）
+## 当前功能（0.6.1）
 
 - 简体中文原生界面、菜单栏入口、单实例运行和可调整大小的窗口。
 - 按 UUID 保存每屏亮度范围及一份设备预设；恢复预设由按钮触发。
@@ -77,7 +77,7 @@ open build/lunar-cn/LunarCN.app
 bash LunarCN/release.sh
 ```
 
-生成 `build/lunar-cn/releases/0.6.0/` 下的 DMG、应用 ZIP、源码 ZIP、`SHA256SUMS` 和 `release.json`。脚本只读挂载 DMG，核对版本、签名并运行自检；不会上传或安装到系统目录。DMG 中将应用拖到 Applications 即可安装，ZIP 解压后移动到应用程序文件夹。详见 [安装说明](Install.zh-CN.txt) 和 [版本说明](RELEASE-NOTES.zh-CN.md)。
+生成 `build/lunar-cn/releases/0.6.1/` 下的 DMG、应用 ZIP、源码 ZIP、`SHA256SUMS` 和 `release.json`。脚本只读挂载 DMG，核对版本、签名并运行自检；不会上传或安装到系统目录。DMG 中将应用拖到 Applications 即可安装，ZIP 解压后移动到应用程序文件夹。详见 [安装说明](Install.zh-CN.txt) 和 [版本说明](RELEASE-NOTES.zh-CN.md)。
 
 “设置与预设”保存最近读回的设备值，未应用的对比度／音量／静音数值不会存入预设；每屏一份，保存会替换。范围只约束月光发出的亮度目标，不会覆盖其他程序或系统的调节。超出范围的已保存预设会提示调整，恢复时不会自动放宽限制。连接变化导致 UUID 改变时按新设备处理。
 
@@ -100,6 +100,8 @@ build/lunar-cn/LunarCN.app/Contents/MacOS/LunarCN --self-test
 0.3.0 接入了 DDC 音量和静音。当前 DELL U3225QE 音量可读，但请求 51%／55% 后仍读回 50%，写入尚未通过；静音未返回有效枚举，界面不展示对应开关。协议及状态解析自检通过不代表该硬件已经支持写入，详见功能对照清单。
 
 如果官方 Lunar 或其他自动调光程序同时运行，它们可能覆盖手动设置。使用本应用进行手动调节前，可先暂停其他程序的自动调光。
+
+显示器自身的自动亮度也会覆盖手动值和“跟随内建屏”的目标。DELL U3225QE 对照验证中，开启自身自动亮度时读数回落至 3%，关闭后恢复循环保持目标值。使用月光手动亮度或跟随内建屏前，请在显示器菜单关闭自身自动亮度。月光不自动更改传感器开关，写入未确认时保留暂停和重试保护。
 
 ## 来源及维护
 

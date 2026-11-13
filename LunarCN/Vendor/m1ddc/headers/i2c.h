@@ -23,7 +23,7 @@
 
 # define DDC_WAIT			10000	// Depending on display this must be set to as high as 50000
 # define DDC_ITERATIONS		2		// Depending on display this must be set higher
-# define DDC_MCDP_READ_WAIT	50000	// 10 ms returned empty MCDP29xx replies in testing
+# define DDC_READ_WAIT		50000	// 10 ms returned empty replies on Dell and MCDP29xx transports.
 # define DDC_BUFFER_SIZE	256
 
 

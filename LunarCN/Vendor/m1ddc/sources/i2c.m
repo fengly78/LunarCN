@@ -37,7 +37,7 @@ void prepareDDCWrite(DDCPacket *packet, UInt16 newValue) {
 
 IOReturn performDDCReadAtChipAddress(IOAVServiceRef avService, UInt32 chipAddress, DDCPacket *packet) {
     memset(packet->data, 0, sizeof(UInt8) * DDC_BUFFER_SIZE);
-    usleep(chipAddress == DDC_CHIP_ADDRESS_MCDP29XX ? DDC_MCDP_READ_WAIT : DDC_WAIT);
+    usleep(DDC_READ_WAIT);
     return IOAVServiceReadI2C(avService, chipAddress, packet->inputAddr, packet->data, 12);
 }
 
