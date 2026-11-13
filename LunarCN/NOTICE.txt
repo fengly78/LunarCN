@@ -1,0 +1,31 @@
+月光（LunarCN）0.6.0
+
+独立开发的简体中文显示器控制应用，功能设计参考 Lunar 的公开实现。
+这是独立实验版本，并非 Lunar 官方发行版，也不包含 Lunar Pro 的加密代码。
+
+Lunar：https://github.com/alin23/Lunar
+Lunar 公开仓库采用 MIT 许可，许可原文见 LICENSES/Lunar-MIT.txt；构建产物会将原文合并在本文件末尾。
+
+Apple Silicon DDC 后端基于 waydabber/m1ddc：
+https://github.com/waydabber/m1ddc
+固定源提交：7339ceebb03f691b1eaeb8471dca301d215d19c8
+
+本地变更：
+- 按协议长度发送完整数据包，保留为零的校验字节。
+- 直接解码 16 位数值，修复 sizeof(2) 导致的越界拷贝。
+- 校验读取响应的头、长度、状态和校验和；无效读取最多重试三次，不重复发送设置命令。
+- 连续值范围和静音枚举按控制类型验证，兼容静音响应最大值为零的设备。
+- 使用独立的受限控制入口，核对显示器 ID 与 UUID，并限制控制项和范围。
+
+支持范围：Apple Silicon Mac，macOS 13 或更高版本。
+外接屏需要支持 DDC/CI；连接线、扩展坞和系统版本可能影响兼容性。
+内置屏幕关闭使用运行时加载的 SkyLight 显示配置接口，提供确认倒计时和独立恢复保护。
+内置屏幕亮度使用 DisplayServices 的读写接口，检查返回状态并读取确认。
+接口研究参考：https://alinpanaitiu.com/blog/turn-off-macbook-display-clamshell/
+支持设备提供的硬件音量和静音控制。
+支持内建屏和外接屏亮度拖动即调节，按显示器合并待写目标并读取确认。
+支持外接屏跟随内建屏亮度，默认关闭并按显示器 UUID 保存；内建屏关闭时暂停。
+当前不包含独立环境光／时间调光、HDR/XDR 增亮、外接屏关闭、输入源切换或云端服务。
+
+第三方许可原文：
+
