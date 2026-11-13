@@ -15,6 +15,16 @@
 
 内建屏关闭期间自动亮度暂停；不同面板的相同百分比不代表相同的实际亮度。自动调光的传感器／时间模式、HDR/XDR、软件调光、输入源切换等仍待实现，详见[功能对照与验收清单](docs/lunar-feature-parity.zh-CN.md)。
 
+## 下载安装（Apple Silicon）
+
+当前提供 **[0.6.0 试用版](https://github.com/fengly78/LunarCN/releases/tag/v0.6.0)**：
+
+- [DMG 安装包（推荐）](https://github.com/fengly78/LunarCN/releases/download/v0.6.0/LunarCN-0.6.0-arm64.dmg)：打开后将 LunarCN.app 拖入 Applications。
+- [应用 ZIP](https://github.com/fengly78/LunarCN/releases/download/v0.6.0/LunarCN-0.6.0-arm64.zip)：解压后移入应用程序文件夹。
+- [SHA-256 校验文件](https://github.com/fengly78/LunarCN/releases/download/v0.6.0/SHA256SUMS)。
+
+仅支持 Apple Silicon（ARM64），最低 macOS 13。安装包使用本机临时签名，未经 Developer ID 签名或 Apple 公证，其他电脑可能被系统阻止打开。
+
 ## 构建与运行
 
 需要 Apple Silicon Mac、macOS 13+ 和 Xcode 命令行工具。使用系统 Swift／Clang，无需下载 SwiftPM、Carthage 或第三方二进制依赖。
@@ -34,7 +44,7 @@ open build/lunar-cn/LunarCN.app
 bash LunarCN/release.sh
 ```
 
-产物位于 `build/lunar-cn/releases/0.6.0/`。本项目目前提供源码和本地打包流程，安装包未经 Developer ID 签名或 Apple 公证。
+产物位于 `build/lunar-cn/releases/0.6.0/`。安装包见上方下载入口，也可使用本地打包流程；所有当前安装包均未经 Developer ID 签名或 Apple 公证。
 
 ## 使用与兼容性
 
